@@ -650,6 +650,14 @@ A = sprandn(5,5,0.4) |> t -> t't + I
 B = complex.(randn(5,2), randn(5,2))
 @test cholfact(A)\B ≈ A\B
 
+# Test that imaginary parts in Hermitian{T,SparseMatrixCSC{T}} are ignored
+let A = sparse([1,2,3,4,1], [1,2,3,4,2], [complex(2.0,1),2,2,2,1])
+    Fs = cholfact(Hermitian(A))
+    Fd = cholfact(Hermitian(Array(A)))
+    @test sparse(Fs) ≈ Hermitian(A)
+    @test Fs\ones(4) ≈ Fd\ones(4)
+end
+
 # Make sure that ldltfact performs an LDLt (Issue #19032)
 let m = 400, n = 500
     A = sprandn(m, n, .2)
