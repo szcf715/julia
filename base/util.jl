@@ -596,7 +596,11 @@ info(err::Exception; prefix="ERROR: ", kw...) =
 
 function julia_cmd(julia=joinpath(JULIA_HOME, julia_exename()))
     opts = JLOptions()
-    cpu_target = unsafe_string(opts.cpu_target)
+    if opts.cpu_target != C_NULL
+        cpu_target = `-C$(unsafe_string(opts.cpu_target))`
+    else
+        cpu_target = ``
+    end
     image_file = unsafe_string(opts.image_file)
     compile = if opts.compile_enabled == 0
                   "no"
@@ -614,7 +618,7 @@ function julia_cmd(julia=joinpath(JULIA_HOME, julia_exename()))
               else
                   "yes"
               end
-    `$julia -C$cpu_target -J$image_file --compile=$compile --depwarn=$depwarn`
+    `$julia $cpu_target -J$image_file --compile=$compile --depwarn=$depwarn`
 end
 
 function julia_exename()
