@@ -93,7 +93,7 @@ void jl_init_jit(Type *T_pjlvalue_)
 // Except for parts of this file which were copied from LLVM, under the UIUC license (marked below).
 
 // this defines the set of optimization passes defined for Julia at various optimization levels
-void addOptimizationPasses(legacy::PassManagerBase *PM, int opt_level)
+void addOptimizationPasses(legacy::PassManagerBase *PM, int opt_level, bool dump_native)
 {
 #ifdef JL_DEBUG_BUILD
     PM->add(createGCInvariantVerifierPass(true));
@@ -169,6 +169,8 @@ void addOptimizationPasses(legacy::PassManagerBase *PM, int opt_level)
     PM->add(createAllocOptPass());
 #endif
     PM->add(createInstructionCombiningPass()); // Cleanup for scalarrepl.
+    if (dump_native)
+        PM->add(createMultiVersioningPass());
     PM->add(createSROAPass());                 // Break up aggregate allocas
     PM->add(createInstructionCombiningPass()); // Cleanup for scalarrepl.
     PM->add(createJumpThreadingPass());        // Thread jumps.
@@ -1133,7 +1135,7 @@ void jl_dump_native(const char *bc_fname, const char *unopt_bc_fname, const char
     }
 
     if (bc_fname || obj_fname)
-        addOptimizationPasses(&PM, jl_options.opt_level);
+        addOptimizationPasses(&PM, jl_options.opt_level, true);
 
     if (bc_fname) {
         // call output handler directly to avoid special case handling of `-` filename

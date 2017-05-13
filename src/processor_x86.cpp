@@ -671,7 +671,7 @@ get_llvm_target_noext(const TargetData<feature_sz> &data, uint32_t llvmver)
             features.push_back(std::string("-") + fename.name);
         }
     }
-    features.push_back("sse2");
+    features.push_back("+sse2");
     return std::make_pair(std::move(name), std::move(features));
 }
 

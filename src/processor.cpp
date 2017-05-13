@@ -507,7 +507,8 @@ parse_cmdline(const char *option, F &&feature_cb)
                 if (!feature_cb(fname, p - fname, list)) {
                     if (!arg.ext_features.empty())
                         arg.ext_features += ',';
-                    arg.ext_features.append(full, p - full);
+                    arg.ext_features += disable ? '-' : '+';
+                    arg.ext_features.append(fname, p - fname);
                 }
             }
             if (next_target)
