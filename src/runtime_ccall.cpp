@@ -8,6 +8,7 @@
 #include "fix_llvm_assert.h"
 #include "julia.h"
 #include "julia_internal.h"
+#include "processor.h"
 using namespace llvm;
 
 // --- library symbol lookup ---
@@ -171,14 +172,12 @@ void *jl_load_and_lookup(const char *f_lib, const char *f_name, void **hnd)
     return jl_dlsym(handle, f_name);
 }
 
-// miscellany
-extern "C" JL_DLLEXPORT
-jl_value_t *jl_get_cpu_name(void)
+std::string jl_get_cpu_name_llvm(void)
 {
-    StringRef HostCPUName = llvm::sys::getHostCPUName();
-    return jl_pchar_to_string(HostCPUName.data(), HostCPUName.size());
+    return llvm::sys::getHostCPUName().str();
 }
 
+// miscellany
 extern "C" JL_DLLEXPORT
 jl_value_t *jl_get_JIT(void)
 {
