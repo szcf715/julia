@@ -594,7 +594,11 @@ JL_DLLEXPORT jl_task_t *jl_new_task(jl_function_t *start, size_t ssize)
     t->ssize = ssize;
     t->current_module = NULL;
     t->parent = ptls->current_task;
+#ifdef JULIA_ENABLE_PARTR
+    t->storage = jl_nothing;
+#else
     t->tls = jl_nothing;
+#endif
     t->consumers = jl_nothing;
     t->state = runnable_sym;
     t->start = start;
@@ -606,7 +610,9 @@ JL_DLLEXPORT jl_task_t *jl_new_task(jl_function_t *start, size_t ssize)
     t->eh = NULL;
     t->gcstack = NULL;
     t->stkbuf = NULL;
+#ifndef JULIA_ENABLE_PARTR
     t->tid = 0;
+#endif
     t->started = 0;
 #ifdef ENABLE_TIMINGS
     t->timing_stack = NULL;
@@ -714,7 +720,11 @@ void jl_init_root_task(void *stack, size_t ssize)
     ptls->current_task->started = 1;
     ptls->current_task->parent = ptls->current_task;
     ptls->current_task->current_module = ptls->current_module;
+#ifdef JULIA_ENABLE_PARTR
+    ptls->current_task->storage = jl_nothing;
+#else
     ptls->current_task->tls = jl_nothing;
+#endif
     ptls->current_task->consumers = jl_nothing;
     ptls->current_task->state = runnable_sym;
     ptls->current_task->start = NULL;
@@ -724,7 +734,9 @@ void jl_init_root_task(void *stack, size_t ssize)
     ptls->current_task->backtrace = jl_nothing;
     ptls->current_task->eh = NULL;
     ptls->current_task->gcstack = NULL;
+#ifndef JULIA_ENABLE_PARTR
     ptls->current_task->tid = ptls->tid;
+#endif
 #ifdef JULIA_ENABLE_THREADING
     arraylist_new(&ptls->current_task->locks, 0);
 #endif
