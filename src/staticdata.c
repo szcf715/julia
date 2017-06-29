@@ -160,9 +160,11 @@ static void jl_load_sysimg_so(void)
         sysimg_gvars_base = (uintptr_t*)jl_dlsym(jl_sysimg_handle, "jl_sysimg_gvars_base");
         sysimg_gvars_offsets = (const int32_t*)jl_dlsym(jl_sysimg_handle,
                                                         "jl_sysimg_gvars_offsets");
+        sysimg_gvars_offsets += 1;
         sysimg_fvars_base = (const char*)jl_dlsym(jl_sysimg_handle, "jl_sysimg_fvars_base");
         sysimg_fvars_offsets = (const int32_t*)jl_dlsym(jl_sysimg_handle,
                                                         "jl_sysimg_fvars_offsets");
+        sysimg_fvars_offsets += 1;
         globalUnique = *(size_t*)jl_dlsym(jl_sysimg_handle, "jl_globalUnique");
 #ifdef JULIA_ENABLE_THREADING
         size_t tls_getter_idx = *(size_t*)jl_dlsym(jl_sysimg_handle,

@@ -1013,12 +1013,14 @@ static void emit_offset_table(Module *mod, const std::vector<GlobalValue*> &vars
     addComdat(GlobalAlias::create(GlobalVariable::ExternalLinkage, name + "_base", vars[0]));
     auto vbase = ConstantExpr::getPtrToInt(vars[0], T_size);
     size_t nvars = vars.size();
-    std::vector<Constant*> offsets(nvars);
-    for (size_t i = 0; i < nvars; i++) {
+    std::vector<Constant*> offsets(nvars + 1);
+    offsets[0] = ConstantInt::get(T_uint32, nvars);
+    offsets[1] = ConstantInt::get(T_uint32, 0);
+    for (size_t i = 1; i < nvars; i++) {
         auto ptrdiff = ConstantExpr::getSub(ConstantExpr::getPtrToInt(vars[i], T_size), vbase);
-        offsets[i] = sizeof(void*) == 8 ? ConstantExpr::getTrunc(ptrdiff, T_uint32) : ptrdiff;
+        offsets[i + 1] = sizeof(void*) == 8 ? ConstantExpr::getTrunc(ptrdiff, T_uint32) : ptrdiff;
     }
-    ArrayType *vars_type = ArrayType::get(T_uint32, nvars);
+    ArrayType *vars_type = ArrayType::get(T_uint32, nvars + 1);
     addComdat(new GlobalVariable(*mod, vars_type, true,
                                  GlobalVariable::ExternalLinkage,
                                  ConstantArray::get(vars_type, ArrayRef<Constant*>(offsets)),
