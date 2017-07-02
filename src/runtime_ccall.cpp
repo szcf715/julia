@@ -177,6 +177,38 @@ std::string jl_get_cpu_name_llvm(void)
     return llvm::sys::getHostCPUName().str();
 }
 
+std::string jl_get_cpu_features_llvm(void)
+{
+    StringMap<bool> HostFeatures;
+    llvm::sys::getHostCPUFeatures(HostFeatures);
+    std::string attr;
+    for (auto &ele: HostFeatures) {
+        if (ele.getValue()) {
+            if (!attr.empty()) {
+                attr.append(",+");
+            }
+            else {
+                attr.append("+");
+            }
+            attr.append(ele.getKey().str());
+        }
+    }
+    // Explicitly disabled features need to be added at the end so that
+    // they are not reenabled by other features that implies them by default.
+    for (auto &ele: HostFeatures) {
+        if (!ele.getValue()) {
+            if (!attr.empty()) {
+                attr.append(",-");
+            }
+            else {
+                attr.append("-");
+            }
+            attr.append(ele.getKey().str());
+        }
+    }
+    return attr;
+}
+
 // miscellany
 extern "C" JL_DLLEXPORT
 jl_value_t *jl_get_JIT(void)
