@@ -698,6 +698,7 @@ export
     mapreducedim,
     merge!,
     merge,
+    pairs,
     #pop!,
     #push!,
     reduce,

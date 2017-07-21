@@ -1734,6 +1734,11 @@ end
 
 @deprecate IOContext(io::IO, key, value) IOContext(io, key=>value)
 
+import .Iterators.enumerate
+
+@deprecate enumerate(i::IndexLinear,    A::AbstractArray)  pairs(i, A)
+@deprecate enumerate(i::IndexCartesian, A::AbstractArray)  pairs(i, A)
+
 # END 0.7 deprecations
 
 # BEGIN 1.0 deprecations
