@@ -992,8 +992,8 @@ end
 
     S = spzeros(10,8)
     A = Array(S)
-    @test indmax(S) == indmax(A) == 1
-    @test indmin(S) == indmin(A) == 1
+    @test indmax(S) == indmax(A) == CartesianIndex(1,1)
+    @test indmin(S) == indmin(A) == CartesianIndex(1,1)
 
     A = Array{Int}(0,0)
     S = sparse(A)

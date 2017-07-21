@@ -1905,8 +1905,8 @@ end
 
 findmin(A::SparseMatrixCSC{Tv,Ti}, region) where {Tv,Ti} = @_findr(<, A, region, Tv, Ti)
 findmax(A::SparseMatrixCSC{Tv,Ti}, region) where {Tv,Ti} = @_findr(>, A, region, Tv, Ti)
-findmin(A::SparseMatrixCSC) = (r=findmin(A,(1,2)); (r[1][1], r[2][1]))
-findmax(A::SparseMatrixCSC) = (r=findmax(A,(1,2)); (r[1][1], r[2][1]))
+findmin(A::SparseMatrixCSC) = (r=findmin(A,(1,2)); (r[1][1], CartesianIndex(ind2sub(A, r[2][1]))))
+findmax(A::SparseMatrixCSC) = (r=findmax(A,(1,2)); (r[1][1], CartesianIndex(ind2sub(A, r[2][1]))))
 
 indmin(A::SparseMatrixCSC) = findmin(A)[2]
 indmax(A::SparseMatrixCSC) = findmax(A)[2]
