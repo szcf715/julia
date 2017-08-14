@@ -194,7 +194,7 @@ function Ac_mul_B(A::AbstractMatrix, D::Diagonal)
     A_mul_B!(Ac, D)
 end
 
-At_mul_B(D::Diagonal, B::Diagonal) = Diagonal(transpose.(D.diag) .* B.diag)
+At_mul_B(D::Diagonal, B::Diagonal) = Diagonal(D.diag .* B.diag)
 At_mul_B(A::AbstractTriangular, D::Diagonal) = A_mul_B!(transpose(A), D)
 function At_mul_B(A::AbstractMatrix, D::Diagonal)
     At = similar(A, promote_op(*, eltype(A), eltype(D.diag)), (size(A, 2), size(A, 1)))
@@ -211,7 +211,7 @@ function A_mul_Bc(D::Diagonal, A::AbstractMatrix)
     A_mul_B!(D, Ac)
 end
 
-A_mul_Bt(D::Diagonal, B::Diagonal) = Diagonal(D.diag .* transpose.(B.diag))
+A_mul_Bt(D::Diagonal, B::Diagonal) = Diagonal(D.diag .* B.diag)
 A_mul_Bt(D::Diagonal, B::AbstractTriangular) = A_mul_B!(D, transpose(B))
 function A_mul_Bt(D::Diagonal, A::AbstractMatrix)
     At = similar(A, promote_op(*, eltype(A), eltype(D.diag)), (size(A, 2), size(A, 1)))
@@ -220,7 +220,7 @@ function A_mul_Bt(D::Diagonal, A::AbstractMatrix)
 end
 
 Ac_mul_Bc(D::Diagonal, B::Diagonal) = Diagonal(adjoint.(D.diag) .* adjoint.(B.diag))
-At_mul_Bt(D::Diagonal, B::Diagonal) = Diagonal(transpose.(D.diag) .* transpose.(B.diag))
+At_mul_Bt(D::Diagonal, B::Diagonal) = Diagonal(D.diag .* B.diag)
 
 A_mul_B!(A::Diagonal,B::Diagonal)  = throw(MethodError(A_mul_B!, Tuple{Diagonal,Diagonal}))
 At_mul_B!(A::Diagonal,B::Diagonal) = throw(MethodError(At_mul_B!, Tuple{Diagonal,Diagonal}))
@@ -236,14 +236,14 @@ A_mul_Bc!(A::AbstractMatrix,B::Diagonal) = scale!(A,conj(B.diag))
 # Get ambiguous method if try to unify AbstractVector/AbstractMatrix here using AbstractVecOrMat
 A_mul_B!(out::AbstractVector, A::Diagonal, in::AbstractVector) = out .= A.diag .* in
 Ac_mul_B!(out::AbstractVector, A::Diagonal, in::AbstractVector) = out .= adjoint.(A.diag) .* in
-At_mul_B!(out::AbstractVector, A::Diagonal, in::AbstractVector) = out .= transpose.(A.diag) .* in
+At_mul_B!(out::AbstractVector, A::Diagonal, in::AbstractVector) = out .= A.diag .* in
 
 A_mul_B!(out::AbstractMatrix, A::Diagonal, in::AbstractMatrix) = out .= A.diag .* in
 Ac_mul_B!(out::AbstractMatrix, A::Diagonal, in::AbstractMatrix) = out .= adjoint.(A.diag) .* in
-At_mul_B!(out::AbstractMatrix, A::Diagonal, in::AbstractMatrix) = out .= transpose.(A.diag) .* in
+At_mul_B!(out::AbstractMatrix, A::Diagonal, in::AbstractMatrix) = out .= A.diag .* in
 
 # ambiguities with Symmetric/Hermitian
-# RealHermSymComplex[Sym]/[Herm] only include Number; invariant to [c]transpose
+# RealHermSymComplex[Sym]/[Herm] only include Number; invariant to transpose/adjoint
 A_mul_Bt(A::Diagonal, B::RealHermSymComplexSym) = A*B
 At_mul_B(A::RealHermSymComplexSym, B::Diagonal) = A*B
 A_mul_Bc(A::Diagonal, B::RealHermSymComplexHerm) = A*B
@@ -309,8 +309,7 @@ A_rdiv_Bt!(A::AbstractMatrix{T}, D::Diagonal{T}) where {T} = A_rdiv_B!(A, D)
 @inline A_mul_Bc(D::Diagonal, rowvec::RowVector) = D*adjoint(rowvec)
 
 conj(D::Diagonal) = Diagonal(conj(D.diag))
-transpose(D::Diagonal{<:Number}) = D
-transpose(D::Diagonal) = Diagonal(transpose.(D.diag))
+transpose(D::Diagonal) = D
 adjoint(D::Diagonal{<:Number}) = conj(D)
 adjoint(D::Diagonal) = Diagonal(adjoint.(D.diag))
 

@@ -13,44 +13,37 @@ vector can be multiplied by a matrix on its right (such that `v.' * A = (A.' * v
 differs from a `1×n`-sized matrix by the facts that its transpose returns a vector and the
 inner product `v1.' * v2` returns a scalar, but will otherwise behave similarly.
 """
-struct RowVector{T,V<:AbstractVector} <: AbstractMatrix{T}
+struct RowVector{T,V<:AbstractVector{T}} <: AbstractMatrix{T}
     vec::V
-    function RowVector{T,V}(v::V) where V<:AbstractVector where T
-        check_types(T,v)
-        new(v)
-    end
 end
 
-@inline check_types(::Type{T1}, ::AbstractVector{T2}) where {T1,T2} = check_types(T1, T2)
-@pure check_types(::Type{T1}, ::Type{T2}) where {T1,T2} = T1 === transpose_type(T2) ? nothing :
-    error("Element type mismatch. Tried to create a `RowVector{$T1}` from an `AbstractVector{$T2}`")
+const ConjRowVector{T,CV<:ConjVector{T}} = RowVector{T,CV}
+const AdjointRowVector{T,AV<:AdjointVector{T}} = RowVector{T,AV}
+const ConjAdjointRowVector{T,CAV<:ConjAdjointVector{T}} = RowVector{T,CAV}
 
-const ConjRowVector{T,CV<:ConjVector} = RowVector{T,CV}
-
-# The element type may be transformed as transpose is recursive
-@inline transpose_type(::Type{T}) where {T} = promote_op(transpose, T)
+parent(rowvec::RowVector) = rowvec.vec
 
 # Constructors that take a vector
-@inline RowVector(vec::AbstractVector{T}) where {T} = RowVector{transpose_type(T),typeof(vec)}(vec)
+@inline RowVector(vec::AbstractVector{T}) where {T} = RowVector{T,typeof(vec)}(vec)
 @inline RowVector{T}(vec::AbstractVector{T}) where {T} = RowVector{T,typeof(vec)}(vec)
 
 # Constructors that take a size and default to Array
-@inline RowVector{T}(n::Int) where {T} = RowVector{T}(Vector{transpose_type(T)}(n))
+@inline RowVector{T}(n::Int) where {T} = RowVector{T}(Vector{T}(n))
 @inline RowVector{T}(n1::Int, n2::Int) where {T} = n1 == 1 ?
-    RowVector{T}(Vector{transpose_type(T)}(n2)) :
+    RowVector{T}(Vector{T}(n2)) :
     error("RowVector expects 1×N size, got ($n1,$n2)")
-@inline RowVector{T}(n::Tuple{Int}) where {T} = RowVector{T}(Vector{transpose_type(T)}(n[1]))
+@inline RowVector{T}(n::Tuple{Int}) where {T} = RowVector{T}(Vector{T}(n[1])) # TODO: is this right?
 @inline RowVector{T}(n::Tuple{Int,Int}) where {T} = n[1] == 1 ?
-    RowVector{T}(Vector{transpose_type(T)}(n[2])) :
+    RowVector{T}(Vector{T}(n[2])) :
     error("RowVector expects 1×N size, got $n")
 
 # Conversion of underlying storage
-convert(::Type{RowVector{T,V}}, rowvec::RowVector) where {T,V<:AbstractVector} =
-    RowVector{T,V}(convert(V,rowvec.vec))
+convert(::Type{RowVector{T,V}}, rowvec::RowVector) where {T,V<:AbstractVector{T}} =
+    RowVector{T,V}(convert(V,parent(rowvec)))
 
 # similar tries to maintain the RowVector wrapper and the parent type
 @inline similar(rowvec::RowVector) = RowVector(similar(parent(rowvec)))
-@inline similar(rowvec::RowVector, ::Type{T}) where {T} = RowVector(similar(parent(rowvec), transpose_type(T)))
+@inline similar(rowvec::RowVector, ::Type{T}) where {T} = RowVector(similar(parent(rowvec), T))
 
 # Resizing similar currently loses its RowVector property.
 @inline similar(rowvec::RowVector, ::Type{T}, dims::Dims{N}) where {T,N} = similar(parent(rowvec), T, dims)
@@ -75,14 +68,12 @@ julia> transpose(v)
 ```
 """
 @inline transpose(vec::AbstractVector) = RowVector(vec)
-@inline adjoint(vec::AbstractVector) = RowVector(_conj(vec))
+@inline adjoint(vec::AbstractVector) = RowVector(_adjoint(vec))
 
-@inline transpose(rowvec::RowVector) = rowvec.vec
-@inline transpose(rowvec::ConjRowVector) = copy(rowvec.vec) # remove the ConjArray wrapper from any raw vector
-@inline adjoint(rowvec::RowVector) = conj(rowvec.vec)
-@inline adjoint(rowvec::RowVector{<:Real}) = rowvec.vec
-
-parent(rowvec::RowVector) = rowvec.vec
+@inline transpose(rowvec::RowVector) = parent(rowvec)
+@inline transpose(rowvec::ConjRowVector) = copy(parent(rowvec)) # remove the ConjArray wrapper from any raw vector
+@inline adjoint(rowvec::RowVector) = conj(parent(rowvec))
+@inline adjoint(rowvec::RowVector{<:Real}) = parent(rowvec)
 
 """
     conj(v::RowVector)
@@ -100,34 +91,34 @@ julia> conj(v)
  1-1im  1+1im
 ```
 """
-@inline conj(rowvec::RowVector) = RowVector(_conj(rowvec.vec))
+@inline conj(rowvec::RowVector) = RowVector(_conj(parent(rowvec)))
 @inline conj(rowvec::RowVector{<:Real}) = rowvec
 
 # AbstractArray interface
-@inline length(rowvec::RowVector) =  length(rowvec.vec)
-@inline size(rowvec::RowVector) = (1, length(rowvec.vec))
-@inline size(rowvec::RowVector, d) = ifelse(d==2, length(rowvec.vec), 1)
-@inline indices(rowvec::RowVector) = (Base.OneTo(1), indices(rowvec.vec)[1])
-@inline indices(rowvec::RowVector, d) = ifelse(d == 2, indices(rowvec.vec)[1], Base.OneTo(1))
+@inline length(rowvec::RowVector) =  length(parent(rowvec))
+@inline size(rowvec::RowVector) = (1, length(parent(rowvec)))
+@inline size(rowvec::RowVector, d) = ifelse(d==2, length(parent(rowvec)), 1)
+@inline indices(rowvec::RowVector) = (Base.OneTo(1), indices(parent(rowvec))[1])
+@inline indices(rowvec::RowVector, d) = ifelse(d == 2, indices(parent(rowvec))[1], Base.OneTo(1))
 IndexStyle(::RowVector) = IndexLinear()
 IndexStyle(::Type{<:RowVector}) = IndexLinear()
 
-@propagate_inbounds getindex(rowvec::RowVector, i) = transpose(rowvec.vec[i])
-@propagate_inbounds setindex!(rowvec::RowVector, v, i) = setindex!(rowvec.vec, transpose(v), i)
+@propagate_inbounds getindex(rowvec::RowVector, i) = parent(rowvec)[i]
+@propagate_inbounds setindex!(rowvec::RowVector, v, i) = setindex!(parent(rowvec), v, i)
 
 # Cartesian indexing is distorted by getindex
 # Furthermore, Cartesian indexes don't have to match shape, apparently!
 @inline function getindex(rowvec::RowVector, i::CartesianIndex)
-    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ indices(rowvec.vec)[1] && check_tail_indices(i.I...))
+    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ indices(parent(rowvec))[1] && check_tail_indices(i.I...))
         throw(BoundsError(rowvec, i.I))
     end
-    @inbounds return transpose(rowvec.vec[i.I[2]])
+    @inbounds return parent(rowvec)[i.I[2]]
 end
 @inline function setindex!(rowvec::RowVector, v, i::CartesianIndex)
-    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ indices(rowvec.vec)[1] && check_tail_indices(i.I...))
+    @boundscheck if !(i.I[1] == 1 && i.I[2] ∈ indices(parent(rowvec))[1] && check_tail_indices(i.I...))
         throw(BoundsError(rowvec, i.I))
     end
-    @inbounds rowvec.vec[i.I[2]] = transpose(v)
+    @inbounds parent(rowvec)[i.I[2]] = v
 end
 
 @propagate_inbounds getindex(rowvec::RowVector, ::CartesianIndex{0}) = getindex(rowvec)
@@ -144,13 +135,12 @@ end
 @inline to_vec(x::Number) = x
 @inline to_vecs(rowvecs...) = (map(to_vec, rowvecs)...)
 
-# map: Preserve the RowVector by un-wrapping and re-wrapping, but note that `f`
-# expects to operate within the transposed domain, so to_vec transposes the elements
-@inline map(f, rowvecs::RowVector...) = RowVector(map(transpose∘f, to_vecs(rowvecs...)...))
+# map: Preserve the RowVector by un-wrapping and re-wrapping
+@inline map(f, rowvecs::RowVector...) = RowVector(map(f, rowvecs))
 
 # broacast (other combinations default to higher-dimensional array)
 @inline broadcast(f, rowvecs::Union{Number,RowVector}...) =
-    RowVector(broadcast(transpose∘f, to_vecs(rowvecs...)...))
+    RowVector(broadcast(f, rowvecs...))
 
 # Horizontal concatenation #
 
@@ -166,8 +156,8 @@ end
 
 # inner product -> dot product specializations
 @inline *(rowvec::RowVector{T}, vec::AbstractVector{T}) where {T<:Real} = dot(parent(rowvec), vec)
-@inline *(rowvec::ConjRowVector{T}, vec::AbstractVector{T}) where {T<:Real} = dot(rowvec', vec)
-@inline *(rowvec::ConjRowVector, vec::AbstractVector) = dot(rowvec', vec)
+#@inline *(rowvec::ConjRowVector{T}, vec::AbstractVector{T}) where {T<:Real} = dot(rowvec', vec)
+#@inline *(rowvec::ConjRowVector, vec::AbstractVector) = dot(rowvec', vec)
 
 # Generic behavior
 @inline function *(rowvec::RowVector, vec::AbstractVector)

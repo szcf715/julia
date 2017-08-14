@@ -13,7 +13,7 @@ have a size corresponding to `(size(src,2),size(src,1))`. No in-place transposit
 supported and unexpected results will happen if `src` and `dest` have overlapping memory
 regions.
 """
-transpose!(B::AbstractMatrix, A::AbstractMatrix) = transpose_f!(transpose, B, A)
+transpose!(B::AbstractMatrix, A::AbstractMatrix) = transpose_f!(identity, B, A)
 
 """
     adjoint!(dest,src)
@@ -34,11 +34,11 @@ function transpose!(B::AbstractMatrix, A::AbstractVector)
 end
 function adjoint!(B::AbstractVector, A::AbstractMatrix)
     indices(B,1) == indices(A,2) && indices(A,1) == 1:1 || throw(DimensionMismatch("transpose"))
-    ccopy!(B, A)
+    adjointcopy!(B, A)
 end
 function adjoint!(B::AbstractMatrix, A::AbstractVector)
     indices(B,2) == indices(A,1) && indices(B,1) == 1:1 || throw(DimensionMismatch("transpose"))
-    ccopy!(B, A)
+    adjointcopy!(B, A)
 end
 
 const transposebaselength=64
@@ -81,7 +81,7 @@ function transposeblock!(f, B::AbstractMatrix, A::AbstractMatrix, m::Int, n::Int
     return B
 end
 
-function ccopy!(B, A)
+function adjointcopy!(B, A)
     RB, RA = eachindex(B), eachindex(A)
     if RB == RA
         for i = RB
@@ -121,12 +121,9 @@ function transpose(A::AbstractMatrix)
 end
 function adjoint(A::AbstractMatrix)
     ind1, ind2 = indices(A)
-    B = similar(A, (ind2, ind1))
+    B = similar(A, adjoint_type(eltype(A)), (ind2, ind1))
     adjoint!(B, A)
 end
-
-@inline adjoint(A::AbstractVector{<:Real}) = transpose(A)
-@inline adjoint(A::AbstractMatrix{<:Real}) = transpose(A)
 
 function copy_transpose!(B::AbstractVecOrMat, ir_dest::Range{Int}, jr_dest::Range{Int},
                          A::AbstractVecOrMat, ir_src::Range{Int}, jr_src::Range{Int})
