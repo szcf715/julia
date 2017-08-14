@@ -1684,6 +1684,8 @@ end
 # PR #22742: change in isapprox semantics
 @deprecate rtoldefault(x,y) rtoldefault(x,y,0) false
 
+@deprecate promote_noncircular promote false
+
 # END 0.7 deprecations
 
 # BEGIN 1.0 deprecations
