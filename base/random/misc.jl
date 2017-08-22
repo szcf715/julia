@@ -433,9 +433,9 @@ julia> Base.Random.uuid_version(Base.Random.uuid4(rng))
 """
 uuid_version(u::UUID) = Int((u.value >> 76) & 0xf)
 
-Base.convert(::Type{UInt128}, u::UUID) = u.value
+UInt128(u::UUID) = u.value
 
-function Base.convert(::Type{UUID}, s::AbstractString)
+function UUID(s::AbstractString)
     s = lowercase(s)
 
     if !ismatch(r"^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$", s)

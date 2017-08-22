@@ -605,4 +605,21 @@ Int(x::Ptr)  = bitcast(Int, x)
 UInt(x::Ptr) = bitcast(UInt, x)
 Ptr{T}(x::Union{Int,UInt,Ptr}) where {T} = bitcast(Ptr{T}, x)
 
+Signed(x::UInt8)    = Int8(x)
+Unsigned(x::Int8)   = UInt8(x)
+Signed(x::UInt16)   = Int16(x)
+Unsigned(x::Int16)  = UInt16(x)
+Signed(x::UInt32)   = Int32(x)
+Unsigned(x::Int32)  = UInt32(x)
+Signed(x::UInt64)   = Int64(x)
+Unsigned(x::Int64)  = UInt64(x)
+Signed(x::UInt128)  = Int128(x)
+Unsigned(x::Int128) = UInt128(x)
+
+Signed(x::Union{Float32, Float64, Bool})   = Int(x)
+Unsigned(x::Union{Float32, Float64, Bool}) = UInt(x)
+
+Integer(x::Integer) = x
+Integer(x::Real) = Signed(x)::Integer
+
 ccall(:jl_set_istopmod, Void, (Any, Bool), Core, true)
