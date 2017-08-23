@@ -178,8 +178,8 @@ circshift(a::AbstractArray, shiftamt::DimsInteger) = circshift!(similar(a), a, s
 """
     circshift(A, shifts)
 
-Circularly shift the data in an array. The second argument is a vector giving the amount to
-shift in each dimension.
+Circularly shift, i.e. rotate, the data in an array. The second argument is a vector giving
+the amount to shift in each dimension.
 
 # Examples
 ```jldoctest
@@ -203,6 +203,30 @@ julia> circshift(b, (-1,0))
  3  7  11  15
  4  8  12  16
  1  5   9  13
+
+julia> a = BitArray([true, true, false, false, true])
+5-element BitArray{1}:
+  true
+  true
+ false
+ false
+  true
+
+julia> circshift(a, 1)
+5-element BitArray{1}:
+  true
+  true
+  true
+ false
+ false
+
+julia> circshift(a, -1)
+5-element BitArray{1}:
+  true
+ false
+ false
+  true
+  true
 ```
 
 See also [`circshift!`](@ref).

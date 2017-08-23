@@ -179,10 +179,6 @@ and can be converted to/from the latter via `Array(bitarray)` and `BitArray(arra
 
 ```@docs
 Base.flipbits!
-Base.rol!
-Base.rol
-Base.ror!
-Base.ror
 ```
 
 ## [Sparse Vectors and Matrices](@id stdlib-sparse-arrays)
