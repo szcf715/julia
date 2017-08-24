@@ -948,3 +948,14 @@ end
                      " 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  …  0.0  0.0  0.0  0.0  0.0  0.0  0.0\n",
                      " ⋮                        ⋮              ⋱            ⋮                      ")
 end
+
+@testset "showarg" begin
+    A = reshape(collect(Int16(1):Int16(2*3*5)), 2, 3, 5)
+    @test summary(A) == "2×3×5 Array{Int16,3}"
+    v = view(A, :, 3, 2:5)
+    @test summary(v) == "2×4 view(::Array{Int16,3}, :, 3, 2:5) with eltype Int16"
+    r = reshape(v, 4, 2)
+    @test summary(r) == "4×2 reshape(view(::Array{Int16,3}, :, 3, 2:5), 4, 2) with eltype Int16"
+    p = PermutedDimsArray(r, (2, 1))
+    @test summary(p) == "2×4 PermutedDimsArray(reshape(view(::Array{Int16,3}, :, 3, 2:5), 4, 2), (2, 1)) with eltype Int16"
+end
