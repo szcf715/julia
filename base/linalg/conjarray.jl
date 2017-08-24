@@ -55,12 +55,6 @@ IndexStyle(::Type{CA}) where {CA<:ConjArray} = IndexStyle(parent_type(CA))
 @inline conj(a::ConjArray) = parent(a)
 @inline adjoint(a::ConjArray) = ConjAdjointArray(parent(a))
 
-# Helper functions, currently used by RowVector
-@inline _conj(a::AbstractArray) = ConjArray(a)
-@inline _conj(a::AbstractArray{T}) where {T<:Real} = a
-@inline _conj(a::ConjArray) = parent(a)
-@inline _conj(a::ConjArray{T}) where {T<:Real} = parent(a)
-
 """
 AdjointArray(array)
 
@@ -115,14 +109,6 @@ IndexStyle(::Type{AA}) where {AA<:AdjointArray} = IndexStyle(parent_type(AA))
 # Currently, this is default behavior for RowVector only
 @inline adjoint(a::AdjointArray) = parent(a)
 @inline conj(a::AdjointArray) = ConjAdjointArray(parent(a))
-
-# Helper functions, currently used by RowVector
-@inline _adjoint(a::AbstractArray) = AdjointArray(a)
-@inline _adjoint(a::AbstractArray{T}) where {T<:Real} = a
-@inline _adjoint(a::AbstractArray{T}) where {T<:Number} = conj(a)
-@inline _adjoint(a::AdjointArray) = parent(a)
-@inline _adjoint(a::AdjointArray{T}) where {T<:Real} = parent(a)
-@inline _adjoint(a::AdjointArray{T}) where {T<:Number} = parent(a)
 
 """
 ConjAdjointArray(array)
@@ -180,7 +166,22 @@ IndexStyle(::Type{A}) where {A<:ConjAdjointArray} = IndexStyle(parent_type(A))
 @inline conj(a::ConjAdjointArray) = AdjointArray(parent(a))
 
 # Helper functions, currently used by RowVector
-@inline _conjadjoint(a::AbstractArray) = ConjAdjointArray(a)
-@inline _conjadjoint(a::AbstractArray{T}) where {T<:Number} = conj(a)
-@inline _conjadjoint(a::AdjointArray) = parent(a)
-@inline _conjadjoint(a::ConjAdjointArray{T}) where {T<:Number} = parent(a)
+# (some of these are simplify types that would not typically occur)
+@inline _conj(a::AbstractArray) = ConjArray(a)
+@inline _conj(a::AbstractArray{<:Real}) = a
+@inline _conj(a::ConjArray) = parent(a)
+@inline _conj(a::AdjointArray) = ConjAdjointArray(parent(a))
+@inline _conj(a::AdjointArray{<:Number}) = parent(a)
+@inline _conj(a::ConjAdjointArray) = AdjointArray(parent(a))
+@inline _conj(a::ConjAdjointArray{<:Real}) = parent(a)
+@inline _conj(a::ConjAdjointArray{<:Number}) = ConjArray(parent(a))
+
+@inline _adjoint(a::AbstractArray) = AdjointArray(a)
+@inline _adjoint(a::AbstractArray{<:Real}) = a
+@inline _adjoint(a::AbstractArray{<:Number}) = ConjArray(a)
+@inline _adjoint(a::AdjointArray) = parent(a)
+@inline _adjoint(a::ConjArray) = ConjAdjointArray(parent(a))
+@inline _adjoint(a::ConjArray{<:Number}) = parent(a)
+@inline _adjoint(a::ConjAdjointArray) = ConjArray(parent(a))
+@inline _adjoint(a::ConjAdjointArray{<:Real}) = parent(a)
+@inline _adjoint(a::ConjAdjointArray{<:Number}) = ConjArray(parent(a))

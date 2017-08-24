@@ -70,10 +70,14 @@ julia> transpose(v)
 @inline transpose(vec::AbstractVector) = RowVector(vec)
 @inline adjoint(vec::AbstractVector) = RowVector(_adjoint(vec))
 
+# For the moment, we remove the ConjArray wrapper from any raw vector of numbers, to allow for BLAS specializations
 @inline transpose(rowvec::RowVector) = parent(rowvec)
-@inline transpose(rowvec::ConjRowVector) = copy(parent(rowvec)) # remove the ConjArray wrapper from any raw vector
-@inline adjoint(rowvec::RowVector) = conj(parent(rowvec))
+@inline transpose(rowvec::ConjRowVector{<:Number}) = copy(parent(rowvec))
+
 @inline adjoint(rowvec::RowVector{<:Real}) = parent(rowvec)
+@inline adjoint(rowvec::RowVector{<:Number}) = conj(parent(rowvec))
+@inline adjoint(rowvec::ConjRowVector{<:Number}) = parent(rowvec)
+@inline adjoint(rowvec::RowVector) = _adjoint(parent(rowvec))
 
 """
     conj(v::RowVector)
@@ -131,16 +135,17 @@ end
 @inline check_tail_indices(i1, i2, i3, is...) = i3 == 1 ? check_tail_indices(i1, i2, is...) : false
 
 # helper function for below
-@inline to_vec(rowvec::RowVector) = map(transpose, transpose(rowvec))
+@inline to_vec(rowvec::RowVector) = parent(rowvec)
 @inline to_vec(x::Number) = x
 @inline to_vecs(rowvecs...) = (map(to_vec, rowvecs)...)
 
 # map: Preserve the RowVector by un-wrapping and re-wrapping
-@inline map(f, rowvecs::RowVector...) = RowVector(map(f, to_vec(rowvecs...)...))
+@inline map(f, rowvecs::RowVector...) = RowVector(map(f, to_vecs(rowvecs...)...))
 
 # broacast (other combinations default to higher-dimensional array)
+# (in future, should use broadcast infrastructure to manage this?)
 @inline broadcast(f, rowvecs::Union{Number,RowVector}...) =
-    RowVector(broadcast(f, to_vec(rowvecs...)...))
+    RowVector(broadcast(f, to_vecs(rowvecs...)...))
 
 # Horizontal concatenation #
 

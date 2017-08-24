@@ -4,7 +4,7 @@
     v = [1,2,3]
     z = [1+im,2,3]
 
-    @test RowVector(v) == [1 2 3]
+    @test RowVector(v)::RowVector == [1 2 3]
     @test RowVector{Int}(v) == [1 2 3]
     @test size(RowVector{Int}(3)) === (1,3)
     @test size(RowVector{Int}(1,3)) === (1,3)
@@ -15,7 +15,9 @@
     @test (v.')::RowVector == [1 2 3]
     @test (v')::RowVector == [1 2 3]
     @test (z.')::RowVector == [1+im 2 3]
+    @test parent(z.') isa Vector
     @test (z')::RowVector == [1-im 2 3]
+    @test parent(z') isa Base.LinAlg.ConjVector
 
     rv = v.'
     tz = z.'
@@ -49,6 +51,40 @@
 
     y = rand(Complex{Float64},3)
     @test sum(abs2, imag.(diag(y .+ y'))) < 1e-20
+end
+
+@testset "Nested arrays" begin
+    v = [[1, 2]]
+
+    @test v'::RowVector == reshape([[1 2]], (1,1))
+    @test parent(v') isa Base.LinAlg.AdjointArray{<:RowVector}
+    @test conj(v')::RowVector == reshape([[1 2]], (1,1))
+    @test parent(conj(v')) isa Base.LinAlg.AdjointArray{<:RowVector}
+    @test (v').'::Vector == [[1 2]]
+    @test (v')' === v
+
+    @test v.'::RowVector == [[1, 2]]
+    @test parent(v.') isa Vector
+    @test conj(v.')::RowVector == [[1, 2]]
+    @test parent(conj(v.')) isa Vector{Int}
+    @test (v.').' === v
+    @test (v.')'::Vector == [[1 2]]
+
+    z = [[1+im, 2]]
+
+    @test z'::RowVector == reshape([[1-im 2]], (1,1))
+    @test parent(z') isa Base.LinAlg.AdjointArray{<:RowVector}
+    @test conj(z')::RowVector == reshape([[1+im 2]], (1,1))
+    @test parent(conj(z')) isa Base.LinAlg.ConjAdjointArray{<:RowVector}
+    @test (z').'::Vector{<:RowVector} == [[1-im 2]]
+    @test (z')' === z
+
+    @test z.'::RowVector == [[1+im, 2]]
+    @test parent(z.') isa Vector
+    @test conj(z.')::RowVector == [[1-im, 2]]
+    @test parent(conj(z.')) isa ConjArray{<:Vector}
+    @test (z.').' === z
+    @test (z.')'::Vector{<:RowVector} == [[1-im 2]]
 end
 
 @testset "Diagonal ambiguity methods" begin
