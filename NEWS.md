@@ -169,7 +169,7 @@ This section lists changes that do not have deprecation warnings.
     of strings. Note that the renamed `adjoint` method (formerly `ctranspose`) does still
     act in a recursive manner, and that (very occassionally) `conj(adjoint(...))` will be
     preferrable to `transpose` for linear algebra problems using nested arrays as "block
-    matrices". ([#??])
+    matrices". ([#23424])
 
 Library improvements
 --------------------

@@ -59,8 +59,8 @@ IndexStyle(::Type{CA}) where {CA<:ConjArray} = IndexStyle(parent_type(CA))
 AdjointArray(array)
 
 A lazy-view wrapper of an `AbstractArray`, taking the elementwise adjoint. This
-type is usually constructed (and unwrapped) via the [`adjoint`](@ref) function, but 
-currently this is the default behavior for `RowVector` only. For other arrays, the 
+type is usually constructed (and unwrapped) via the [`adjoint`](@ref) function, but
+currently this is the default behavior for `RowVector` only. For other arrays, the
 `AdjointArray` constructor can be used directly.
 
 # Examples
