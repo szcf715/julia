@@ -136,11 +136,11 @@ end
 @inline to_vecs(rowvecs...) = (map(to_vec, rowvecs)...)
 
 # map: Preserve the RowVector by un-wrapping and re-wrapping
-@inline map(f, rowvecs::RowVector...) = RowVector(map(f, rowvecs))
+@inline map(f, rowvecs::RowVector...) = RowVector(map(f, to_vec(rowvecs...)...))
 
 # broacast (other combinations default to higher-dimensional array)
 @inline broadcast(f, rowvecs::Union{Number,RowVector}...) =
-    RowVector(broadcast(f, rowvecs...))
+    RowVector(broadcast(f, to_vec(rowvecs...)...))
 
 # Horizontal concatenation #
 

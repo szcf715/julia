@@ -10,7 +10,7 @@
     @test size(RowVector{Int}(1,3)) === (1,3)
     @test size(RowVector{Int}((3,))) === (1,3)
     @test size(RowVector{Int}((1,3))) === (1,3)
-    @test_throws ErrorException RowVector{Float64, Vector{Int}}(v)
+    @test_throws TypeError RowVector{Float64, Vector{Int}}(v)
 
     @test (v.')::RowVector == [1 2 3]
     @test (v')::RowVector == [1 2 3]
