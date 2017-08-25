@@ -116,19 +116,38 @@ function free(buf_ref::Base.Ref{Buffer})
     ccall((:git_buf_free, :libgit2), Void, (Ptr{Buffer},), buf_ref)
 end
 
-"Abstract credentials payload"
-abstract type AbstractCredentials end
-
-"Checks if credentials were used"
-checkused!(p::AbstractCredentials) = true
-checkused!(p::Void) = false
-"Resets credentials for another use"
-reset!(p::AbstractCredentials, cnt::Int=3) = nothing
-
 """
     LibGit2.CheckoutOptions
 
 Matches the [`git_checkout_options`](https://libgit2.github.com/libgit2/#HEAD/type/git_checkout_options) struct.
+
+The fields represent:
+  * `version`: version of the struct in use, in case this changes later. For now, always `1`.
+  * `checkout_strategy`: determine how to handle conflicts and whether to force the
+     checkout/recreate missing files.
+  * `disable_filters`: if nonzero, do not apply filters like CLRF (to convert file newlines between UNIX and DOS).
+  * `dir_mode`: read/write/access mode for any directories involved in the checkout. Default is `0755`.
+  * `file_mode`: read/write/access mode for any files involved in the checkout.
+     Default is `0755` or `0644`, depeding on the blob.
+  * `file_open_flags`: bitflags used to open any files during the checkout.
+  * `notify_flags`: Flags for what sort of conflicts the user should be notified about.
+  * `notify_cb`: An optional callback function to notify the user if a checkout conflict occurs.
+     If this function returns a non-zero value, the checkout will be cancelled.
+  * `notify_payload`: Payload for the notify callback function.
+  * `progress_cb`: An optional callback function to display checkout progress.
+  * `progress_payload`: Payload for the progress callback.
+  * `paths`: If not empty, describes which paths to search during the checkout.
+     If empty, the checkout will occur over all files in the repository.
+  * `baseline`: Expected content of the [`workdir`](@ref), captured in a (pointer to a)
+     [`GitTree`](@ref). Defaults to the state of the tree at HEAD.
+  * `baseline_index`: Expected content of the [`workdir`](@ref), captured in a (pointer to a)
+     `GitIndex`. Defaults to the state of the index at HEAD.
+  * `target_directory`: If not empty, checkout to this directory instead of the `workdir`.
+  * `ancestor_label`: In case of conflicts, the name of the common ancestor side.
+  * `our_label`: In case of conflicts, the name of "our" side.
+  * `their_label`: In case of conflicts, the name of "their" side.
+  * `perfdata_cb`: An optional callback function to display performance data.
+  * `perfdata_payload`: Payload for the performance callback.
 """
 @kwdef struct CheckoutOptions
     version::Cuint = 1
@@ -245,6 +264,20 @@ end
     LibGit2.FetchOptions
 
 Matches the [`git_fetch_options`](https://libgit2.github.com/libgit2/#HEAD/type/git_fetch_options) struct.
+
+The fields represent:
+  * `version`: version of the struct in use, in case this changes later. For now, always `1`.
+  * `callbacks`: remote callbacks to use during the fetch.
+  * `prune`: whether to perform a prune after the fetch or not. The default is to
+     use the setting from the `GitConfig`.
+  * `update_fetchhead`: whether to update the [`FetchHead`](@ref) after the fetch.
+     The default is to perform the update, which is the normal git behavior.
+  * `download_tags`: whether to download tags present at the remote or not. The default
+     is to request the tags for objects which are being downloaded anyway from the server.
+  * `proxy_opts`: options for connecting to the remote through a proxy. See [`ProxyOptions`](@ref).
+     Only present on libgit2 versions newer than or equal to 0.25.0.
+  * `custom_headers`: any extra headers needed for the fetch. Only present on libgit2 versions
+     newer than or equal to 0.24.0.
 """
 @kwdef struct FetchOptions
     version::Cuint                  = 1
@@ -264,6 +297,23 @@ end
     LibGit2.CloneOptions
 
 Matches the [`git_clone_options`](https://libgit2.github.com/libgit2/#HEAD/type/git_clone_options) struct.
+
+The fields represent:
+  * `version`: version of the struct in use, in case this changes later. For now, always `1`.
+  * `checkout_opts`: The options for performing the checkout of the remote as part of the clone.
+  * `fetch_opts`: The options for performing the pre-checkout fetch of the remote as part of the clone.
+  * `bare`: If `0`, clone the full remote repository. If non-zero, perform a bare clone, in which
+     there is no local copy of the source files in the repository and the [`gitdir`](@ref) and [`workdir`](@ref)
+     are the same.
+  * `localclone`: Flag whether to clone a local object database or do a fetch. The default is to let git decide.
+     It will not use the git-aware transport for a local clone, but will use it for URLs which begin with `file://`.
+  * `checkout_branch`: The name of the branch to checkout. If an empty string, the default branch of the
+     remote will be checked out.
+  * `repository_cb`: An optional callback which will be used to create the *new* repository into which
+     the clone is made.
+  * `repository_cb_payload`: The payload for the repository callback.
+  * `remote_cb`: An optional callback used to create the [`GitRemote`](@ref) before making the clone from it.
+  * `remote_cb_payload`: The payload for the remote callback.
 """
 @kwdef struct CloneOptions
     version::Cuint                      = 1
@@ -477,6 +527,15 @@ end
     LibGit2.CherrypickOptions
 
 Matches the [`git_cherrypick_options`](https://libgit2.github.com/libgit2/#HEAD/type/git_cherrypick_options) struct.
+
+The fields represent:
+  * `version`: version of the struct in use, in case this changes later. For now, always `1`.
+  * `mainline`: if cherrypicking a merge commit, specifies the parent number (starting at `1`)
+    which will allow cherrypick to apply the changes relative to that parent. Only relevant if
+    cherrypicking a merge commit. Default is `0`.
+  * `merge_opts`: options for merging the changes in. See [`MergeOptions`](@ref) for more information.
+  * `checkout_opts`: options for the checkout of the commit being cherrypicked. See [`CheckoutOptions`](@ref)
+     for more information.
 """
 @kwdef struct CherrypickOptions
     version::Cuint = 1
@@ -526,6 +585,20 @@ Base.show(io::IO, ie::IndexEntry) = print(io, "IndexEntry($(string(ie.id)))")
     LibGit2.RebaseOptions
 
 Matches the `git_rebase_options` struct.
+
+The fields represent:
+  * `version`: version of the struct in use, in case this changes later. For now, always `1`.
+  * `quiet`: inform other git clients helping with/working on the rebase that the rebase
+    should be done "quietly". Used for interoperability. The default is `1`.
+  * `inmemory`: start an in-memory rebase. Callers working on the rebase can go through its
+    steps and commit any changes, but cannot rewind HEAD or update the repository. The
+    [`workdir`](@ref) will not be modified. Only present on libgit2 versions newer than or equal to 0.24.0.
+  * `rewrite_notes_ref`: name of the reference to notes to use to rewrite the commit notes as
+    the rebase is finished.
+  * `merge_opts`: merge options controlling how the trees will be merged at each rebase step.
+     Only present on libgit2 versions newer than or equal to 0.24.0.
+  * `checkout_opts`: checkout options for writing files when initializing the rebase, stepping
+    through it, and aborting it. See [`CheckoutOptions`](@ref) for more information.
 """
 @kwdef struct RebaseOptions
     version::Cuint                 = 1
@@ -545,6 +618,23 @@ end
 
 Describes a single instruction/operation to be performed during the rebase.
 Matches the [`git_rebase_operation`](https://libgit2.github.com/libgit2/#HEAD/type/git_rebase_operation_t) struct.
+
+The fields represent:
+  * `optype`: the type of rebase operation currently being performed. The options are:
+      - `REBASE_OPERATION_PICK`: cherry-pick the commit in question.
+      - `REBASE_OPERATION_REWORD`: cherry-pick the commit in question, but rewrite its
+        message using the prompt.
+      - `REBASE_OPERATION_EDIT`: cherry-pick the commit in question, but allow the user
+        to edit the commit's contents and its message.
+      - `REBASE_OPERATION_SQUASH`: squash the commit in question into the previous commit.
+        The commit messages of the two commits will be merged.
+      - `REBASE_OPERATION_FIXUP`: squash the commit in question into the previous commit.
+        Only the commit message of the previous commit will be used.
+      - `REBASE_OPERATION_EXEC`: do not cherry-pick a commit. Run a command and continue if
+        the command exits successfully.
+  * `id`: the [`GitHash`](@ref) of the commit being worked on during this rebase step.
+  * `exec`: in case `REBASE_OPERATION_EXEC` is used, the command to run during this step
+    (for instance, running the test suite after each commit).
 """
 struct RebaseOperation
     optype::Cint
@@ -591,6 +681,15 @@ end
 Contains the information about HEAD during a fetch, including the name and URL
 of the branch fetched from, the oid of the HEAD, and whether the fetched HEAD
 has been merged locally.
+
+The fields represent:
+  * `name`: The name in the local reference database of the fetch head, for example,
+     `"refs/heads/master"`.
+  * `url`: The URL of the fetch head.
+  * `oid`: The [`GitHash`](@ref) of the tip of the fetch head.
+  * `ismerge`: Boolean flag indicating whether the changes at the
+     remote have been merged into the local copy yet or not. If `true`, the local
+     copy is up to date with the remote fetch head.
 """
 struct FetchHead
     name::String
@@ -837,6 +936,14 @@ end
 
 import Base.securezero!
 
+"Abstract credentials payload"
+abstract type AbstractCredentials end
+
+"Checks if credentials were used"
+checkused!(p::AbstractCredentials) = true
+"Resets credentials for another use"
+reset!(p::AbstractCredentials, cnt::Int=3) = nothing
+
 "Credentials that support only `user` and `password` parameters"
 mutable struct UserPasswordCredentials <: AbstractCredentials
     user::String
@@ -911,16 +1018,6 @@ reset!(p::CachedCredentials) = (foreach(reset!, values(p.cred)); p)
 
 "Obtain the cached credentials for the given host+protocol (credid), or return and store the default if not found"
 get_creds!(collection::CachedCredentials, credid, default) = get!(collection.cred, credid, default)
-get_creds!(creds::AbstractCredentials, credid, default) = creds
-get_creds!(creds::Void, credid, default) = default
-function get_creds!(creds::Ref{Nullable{AbstractCredentials}}, credid, default)
-    if isnull(creds[])
-        creds[] = Nullable{AbstractCredentials}(default)
-        return default
-    else
-        get_creds!(Base.get(creds[]), credid, default)
-    end
-end
 
 function securezero!(p::CachedCredentials)
     foreach(securezero!, values(p.cred))

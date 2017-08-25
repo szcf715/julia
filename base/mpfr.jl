@@ -27,8 +27,11 @@ import Base.Math.lgamma_r
 
 import Base.FastMath.sincos_fast
 
-get_version() = VersionNumber(unsafe_string(ccall((:mpfr_get_version,:libmpfr), Ptr{Cchar}, ())))
-get_patches() = split(unsafe_string(ccall((:mpfr_get_patches,:libmpfr), Ptr{Cchar}, ())),' ')
+function version()
+    version = unsafe_string(ccall((:mpfr_get_version,:libmpfr), Ptr{Cchar}, ()))
+    build = replace(unsafe_string(ccall((:mpfr_get_patches,:libmpfr), Ptr{Cchar}, ())), ' ', '.')
+    isempty(build) ? VersionNumber(version) : VersionNumber(version * '+' * build)
+end
 
 function __init__()
     try
@@ -42,7 +45,7 @@ function __init__()
 end
 
 const ROUNDING_MODE = Ref{Cint}(0)
-const DEFAULT_PRECISION = [256]
+const DEFAULT_PRECISION = Ref(256)
 
 # Basic type and initialization definitions
 
@@ -234,7 +237,7 @@ floor(::Type{Integer}, x::BigFloat) = floor(BigInt, x)
 ceil(::Type{Integer}, x::BigFloat) = ceil(BigInt, x)
 round(::Type{Integer}, x::BigFloat) = round(BigInt, x)
 
-convert(::Type{Bool}, x::BigFloat) = x==0 ? false : x==1 ? true :
+convert(::Type{Bool}, x::BigFloat) = iszero(x) ? false : isone(x) ? true :
     throw(InexactError(:convert, Bool, x))
 function convert(::Type{BigInt},x::BigFloat)
     isinteger(x) || throw(InexactError(:convert, BigInt, x))
@@ -275,7 +278,7 @@ big(::Type{<:AbstractFloat}) = BigFloat
 function convert(::Type{Rational{BigInt}}, x::AbstractFloat)
     if isnan(x); return zero(BigInt)//zero(BigInt); end
     if isinf(x); return copysign(one(BigInt),x)//zero(BigInt); end
-    if x == 0;   return zero(BigInt) // one(BigInt); end
+    if iszero(x);   return zero(BigInt) // one(BigInt); end
     s = max(precision(x) - exponent(x), 0)
     BigInt(ldexp(x,s)) // (BigInt(1) << s)
 end
@@ -740,7 +743,7 @@ end
 
 Get the precision (in bits) currently used for [`BigFloat`](@ref) arithmetic.
 """
-precision(::Type{BigFloat}) = DEFAULT_PRECISION[end]  # precision of the type BigFloat itself
+precision(::Type{BigFloat}) = DEFAULT_PRECISION[] # precision of the type BigFloat itself
 
 """
     setprecision([T=BigFloat,] precision::Int)
@@ -751,7 +754,7 @@ function setprecision(::Type{BigFloat}, precision::Int)
     if precision < 2
         throw(DomainError(precision, "`precision` cannot be less than 2."))
     end
-    DEFAULT_PRECISION[end] = precision
+    DEFAULT_PRECISION[] = precision
 end
 
 setprecision(precision::Int) = setprecision(BigFloat, precision)
@@ -795,7 +798,7 @@ function copysign(x::BigFloat, y::BigFloat)
 end
 
 function exponent(x::BigFloat)
-    if x == 0 || !isfinite(x)
+    if iszero(x) || !isfinite(x)
         throw(DomainError(x, "`x` must be non-zero and finite."))
     end
     # The '- 1' is to make it work as Base.exponent
@@ -923,7 +926,7 @@ function string(x::BigFloat)
         buf = Base.StringVector(lng + 1)
         lng = ccall((:mpfr_snprintf,:libmpfr), Int32, (Ptr{UInt8}, Culong, Ptr{UInt8}, Ptr{BigFloat}...), buf, lng + 1, "%.Re", &x)
     end
-    n = (1 <= x < 10 || -10 < x <= -1 || x == 0) ? lng - 4 : lng
+    n = (1 <= x < 10 || -10 < x <= -1 || iszero(x)) ? lng - 4 : lng
     return String(resize!(buf,n))
 end
 

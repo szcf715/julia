@@ -30,6 +30,7 @@ Base.LibGit2.GitRemote
 Base.LibGit2.GitRemoteAnon
 Base.LibGit2.GitRepo
 Base.LibGit2.GitRepoExt
+Base.LibGit2.GitRevWalker
 Base.LibGit2.GitShortHash
 Base.LibGit2.GitSignature
 Base.LibGit2.GitStatus
@@ -50,6 +51,7 @@ Base.LibGit2.StatusOptions
 Base.LibGit2.StrArrayStruct
 Base.LibGit2.TimeStruct
 Base.LibGit2.UserPasswordCredentials
+Base.LibGit2.add!
 Base.LibGit2.add_fetch!
 Base.LibGit2.add_push!
 Base.LibGit2.addblob!
@@ -62,6 +64,7 @@ Base.LibGit2.checkused!
 Base.LibGit2.clone
 Base.LibGit2.commit
 Base.LibGit2.committer
+Base.LibGit2.count(::Function, ::Base.LibGit2.GitRevWalker; ::Base.LibGit2.GitHash, ::Cint, ::Bool)
 Base.LibGit2.create_branch
 Base.LibGit2.credentials_callback
 Base.LibGit2.credentials_cb
@@ -69,8 +72,10 @@ Base.LibGit2.default_signature
 Base.LibGit2.delete_branch
 Base.LibGit2.diff_files
 Base.LibGit2.fetch
+Base.LibGit2.fetchheads
 Base.LibGit2.fetch_refspecs
 Base.LibGit2.fetchhead_foreach_cb
+Base.LibGit2.merge_base
 Base.LibGit2.merge!(::Base.LibGit2.GitRepo; ::Any...)
 Base.LibGit2.ffmerge!
 Base.LibGit2.fullname
@@ -88,6 +93,7 @@ Base.LibGit2.isdiff
 Base.LibGit2.isdirty
 Base.LibGit2.isorphan
 Base.LibGit2.lookup_branch
+Base.LibGit2.map(::Function, ::Base.LibGit2.GitRevWalker; ::Base.LibGit2.GitHash, ::Cint, ::Bool)
 Base.LibGit2.mirror_callback
 Base.LibGit2.mirror_cb
 Base.LibGit2.message
@@ -98,12 +104,15 @@ Base.LibGit2.path
 Base.LibGit2.peel
 Base.LibGit2.posixpath
 Base.LibGit2.push
+Base.LibGit2.push!(::Base.LibGit2.GitRevWalker, ::Base.LibGit2.GitHash)
+Base.LibGit2.push_head!
 Base.LibGit2.push_refspecs
 Base.LibGit2.read_tree!
 Base.LibGit2.rebase!
 Base.LibGit2.ref_list
 Base.LibGit2.reftype
 Base.LibGit2.remotes
+Base.LibGit2.remove!
 Base.LibGit2.reset!
 Base.LibGit2.restore
 Base.LibGit2.revcount
@@ -116,8 +125,10 @@ Base.LibGit2.tag_create
 Base.LibGit2.tag_delete
 Base.LibGit2.tag_list
 Base.LibGit2.target
+Base.LibGit2.transact
 Base.LibGit2.treewalk
 Base.LibGit2.upstream
+Base.LibGit2.update!
 Base.LibGit2.url
 Base.LibGit2.with
 Base.LibGit2.workdir
