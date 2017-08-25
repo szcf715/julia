@@ -254,10 +254,8 @@ Documentation written in non-toplevel blocks, such as `begin`, `if`, `for`, and 
 added to the documentation system as blocks are evaluated. For example:
 
 ```julia
-if VERSION > v"0.5"
-    "..."
-    f(x) = x
-end
+"..."
+f(x) = x
 ```
 
 will add documentation to `f(x)` when the condition is `true`. Note that even if `f(x)` goes

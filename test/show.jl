@@ -755,7 +755,7 @@ end
 
 # showing generator and comprehension expressions
 @test repr(:(x for x in y for z in w)) == ":((x for x = y for z = w))"
-@test repr(:(x for x in y if aa for z in w if bb)) == ":((x for x = y if aa for z = w if bb))"
+@test repr(:(x for x i n y if aa for z in w if bb)) == ":((x for x = y if aa for z = w if bb))"
 @test repr(:([x for x = y])) == ":([x for x = y])"
 @test repr(:([x for x = y if z])) == ":([x for x = y if z])"
 @test repr(:(z for z = 1:5, y = 1:5)) == ":((z for z = 1:5, y = 1:5))"
