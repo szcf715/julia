@@ -81,6 +81,7 @@ Base.LibGit2.ffmerge!
 Base.LibGit2.fullname
 Base.LibGit2.get_creds!
 Base.LibGit2.gitdir
+Base.LibGit2.@githash_str
 Base.LibGit2.head
 Base.LibGit2.head!
 Base.LibGit2.head_oid
@@ -92,6 +93,7 @@ Base.LibGit2.iscommit
 Base.LibGit2.isdiff
 Base.LibGit2.isdirty
 Base.LibGit2.isorphan
+Base.LibGit2.iszero
 Base.LibGit2.lookup_branch
 Base.LibGit2.map(::Function, ::Base.LibGit2.GitRevWalker; ::Base.LibGit2.GitHash, ::Cint, ::Bool)
 Base.LibGit2.mirror_callback
@@ -107,6 +109,7 @@ Base.LibGit2.push
 Base.LibGit2.push!(::Base.LibGit2.GitRevWalker, ::Base.LibGit2.GitHash)
 Base.LibGit2.push_head!
 Base.LibGit2.push_refspecs
+Base.LibGit2.raw
 Base.LibGit2.read_tree!
 Base.LibGit2.rebase!
 Base.LibGit2.ref_list
